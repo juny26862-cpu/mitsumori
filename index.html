@@ -192,6 +192,21 @@
 </head>
 <body>
 
+<!-- パスワード保護オーバーレイ -->
+<div id="pw-overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#4f46e5 0%,#0ea5e9 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;padding:24px;font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN',sans-serif;">
+  <div style="background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,0.22);padding:32px 28px;max-width:320px;width:100%;text-align:center;">
+    <div style="font-size:56px;margin-bottom:8px;">📋</div>
+    <div style="font-size:20px;font-weight:800;color:#1a1a2e;margin-bottom:4px;">簡単見積ツール</div>
+    <div style="font-size:13px;color:#6b7280;margin-bottom:28px;">パスワードを入力してください</div>
+    <input id="pw-input" type="password" inputmode="text" placeholder="パスワード" autocomplete="off"
+      style="width:100%;padding:13px 16px;border:2px solid #e5e7eb;border-radius:12px;font-size:16px;outline:none;box-sizing:border-box;margin-bottom:12px;-webkit-appearance:none;display:block;"
+      onkeydown="if(event.keyCode===13||event.key==='Enter')checkPw()">
+    <button onclick="checkPw()"
+      style="width:100%;padding:14px;background:linear-gradient(135deg,#4f46e5,#0ea5e9);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;-webkit-appearance:none;display:block;box-sizing:border-box;">ログイン →</button>
+    <div id="pw-err" style="display:none;margin-top:14px;color:#ef4444;font-size:13px;font-weight:600;">❌ パスワードが違います</div>
+  </div>
+</div>
+
 <h1>📋 簡単見積ツール</h1>
 
 <div class="input-card">
@@ -310,6 +325,35 @@
 <!-- ========== /Quick Look全画面案内 ========== -->
 
 <script>
+  // パスワード認証
+  (function() {
+    try {
+      if (localStorage.getItem('mitsumori_auth') === 'ok') {
+        var el = document.getElementById('pw-overlay');
+        if (el) el.parentNode.removeChild(el);
+        return;
+      }
+    } catch(e) {}
+    window.addEventListener('load', function() {
+      var inp = document.getElementById('pw-input');
+      if (inp) setTimeout(function(){ inp.focus(); }, 100);
+    });
+  })();
+
+  function checkPw() {
+    var val = document.getElementById('pw-input') ? document.getElementById('pw-input').value : '';
+    if (val === 'skyline34') {
+      try { localStorage.setItem('mitsumori_auth', 'ok'); } catch(e) {}
+      var el = document.getElementById('pw-overlay');
+      if (el) el.parentNode.removeChild(el);
+    } else {
+      var errEl = document.getElementById('pw-err');
+      if (errEl) errEl.style.display = 'block';
+      var inp = document.getElementById('pw-input');
+      if (inp) { inp.value = ''; inp.focus(); }
+    }
+  }
+
   var CAM1 = 3490;
   var CAM2 = 2500;
   var planSelect = document.getElementById('plan');
