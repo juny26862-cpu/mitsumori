@@ -188,6 +188,67 @@
     @media (min-width: 641px) { .card-breakdown { font-size: 12px; padding-top: 10px; } }
 
     .breakdown-row { display: flex; justify-content: space-between; gap: 4px; }
+
+    /* ── タブバー ── */
+    .tab-bar {
+      display: flex;
+      background: #fff;
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      flex-shrink: 0;
+    }
+    @media (min-width: 641px) { .tab-bar { max-width: 520px; margin: 0 auto 16px; } }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border: none;
+      background: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #9ca3af;
+      cursor: pointer;
+      -webkit-appearance: none;
+    }
+    .tab-btn.active { background: linear-gradient(135deg,#4f46e5,#0ea5e9); color: #fff; }
+
+    /* ── モード切替 ── */
+    @media (max-width: 640px) {
+      .mode { display: none; flex-direction: column; gap: 8px; flex: 1; }
+      .mode.active { display: flex; }
+    }
+    @media (min-width: 641px) {
+      .mode { display: none; }
+      .mode.active { display: block; }
+    }
+
+    /* ── 差額結果カード ── */
+    .diff-result {
+      border-radius: 12px;
+      padding: 18px 16px;
+      flex-shrink: 0;
+    }
+    .diff-result.empty {
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      color: #9ca3af;
+      font-size: 14px;
+      text-align: center;
+      line-height: 1.8;
+    }
+    .diff-result.up   { background: #ef4444; box-shadow: 0 2px 8px rgba(239,68,68,0.3); }
+    .diff-result.down { background: #10b981; box-shadow: 0 2px 8px rgba(16,185,129,0.3); }
+    .diff-result.zero { background: #6b7280; }
+
+    .diff-inner { display: flex; gap: 12px; }
+    .diff-col   { flex: 1; }
+    .diff-sep   { width: 1px; background: rgba(255,255,255,0.3); }
+    .diff-lbl   { font-size: 11px; color: rgba(255,255,255,0.8); margin-bottom: 2px; }
+    .diff-val   { font-size: 26px; font-weight: 800; color: #fff; line-height: 1.2; }
+    .diff-sub   { font-size: 11px; color: rgba(255,255,255,0.75); margin-top: 3px; }
   </style>
 </head>
 <body>
@@ -209,6 +270,14 @@
 
 <h1>📋 簡単見積ツール</h1>
 
+<!-- タブバー -->
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-estimate" type="button">📊 見積計算</button>
+  <button class="tab-btn"        id="tab-diff"     type="button">🔄 差額計算</button>
+</div>
+
+<!-- 見積モード -->
+<div id="mode-estimate" class="mode active">
 <div class="input-card">
   <div class="input-row">
     <label for="plan">プラン</label>
@@ -281,6 +350,96 @@
     <div class="card-breakdown" id="breakdown0"></div>
   </div>
 </div>
+
+</div><!-- /mode-estimate -->
+
+<!-- 差額計算モード -->
+<div id="mode-diff" class="mode">
+  <div class="input-card">
+    <div class="input-row">
+      <label for="diff-before">変更前</label>
+      <select id="diff-before">
+        <option value="">── 選んでください ──</option>
+        <optgroup label="Aセレクト">
+          <option value="1660">① Aセレ320MW　¥1,660/戸</option>
+          <option value="1700">② A320M高機能W　¥1,700/戸</option>
+          <option value="2000">③ Aセレクト1G高機能W　¥2,000/戸</option>
+          <option value="1160">⑫ Aセレ40MW　¥1,160/戸</option>
+          <option value="1360">⑬ Aセレ120MW　¥1,360/戸</option>
+        </optgroup>
+        <optgroup label="Aコンフォート">
+          <option value="2400">④ Aコン320MW　¥2,400/戸</option>
+          <option value="2440">⑤ Aコン320高機能W　¥2,440/戸</option>
+          <option value="2740">⑥ Aコン1G高機能W　¥2,740/戸</option>
+          <option value="1860">⑭ Aコン12M　¥1,860/戸</option>
+          <option value="1990">⑮ Aコン40MW　¥1,990/戸</option>
+          <option value="2100">⑯ Aコン120MW　¥2,100/戸</option>
+        </optgroup>
+        <optgroup label="Aスタンダード">
+          <option value="2700">⑦ Aスタ320MW　¥2,700/戸</option>
+          <option value="2740">⑧ Aスタ320高機能W　¥2,740/戸</option>
+          <option value="3040">⑨ Aスタ1G高機能W　¥3,040/戸</option>
+        </optgroup>
+        <optgroup label="E">
+          <option value="1300">⑩ E320高W　¥1,300/戸</option>
+          <option value="1400">⑪ E1G高W　¥1,400/戸</option>
+        </optgroup>
+        <optgroup label="Bコンフォート">
+          <option value="860">⑰ Bコン12M　¥860/戸</option>
+          <option value="990">⑱ Bコン40MW　¥990/戸</option>
+        </optgroup>
+        <optgroup label="D">
+          <option value="300">⑲ D5年　¥300/戸</option>
+          <option value="180">⑳ D7年　¥180/戸</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="input-row">
+      <label for="diff-after">変更後</label>
+      <select id="diff-after">
+        <option value="">── 選んでください ──</option>
+        <optgroup label="Aセレクト">
+          <option value="1660">① Aセレ320MW　¥1,660/戸</option>
+          <option value="1700">② A320M高機能W　¥1,700/戸</option>
+          <option value="2000">③ Aセレクト1G高機能W　¥2,000/戸</option>
+          <option value="1160">⑫ Aセレ40MW　¥1,160/戸</option>
+          <option value="1360">⑬ Aセレ120MW　¥1,360/戸</option>
+        </optgroup>
+        <optgroup label="Aコンフォート">
+          <option value="2400">④ Aコン320MW　¥2,400/戸</option>
+          <option value="2440">⑤ Aコン320高機能W　¥2,440/戸</option>
+          <option value="2740">⑥ Aコン1G高機能W　¥2,740/戸</option>
+          <option value="1860">⑭ Aコン12M　¥1,860/戸</option>
+          <option value="1990">⑮ Aコン40MW　¥1,990/戸</option>
+          <option value="2100">⑯ Aコン120MW　¥2,100/戸</option>
+        </optgroup>
+        <optgroup label="Aスタンダード">
+          <option value="2700">⑦ Aスタ320MW　¥2,700/戸</option>
+          <option value="2740">⑧ Aスタ320高機能W　¥2,740/戸</option>
+          <option value="3040">⑨ Aスタ1G高機能W　¥3,040/戸</option>
+        </optgroup>
+        <optgroup label="E">
+          <option value="1300">⑩ E320高W　¥1,300/戸</option>
+          <option value="1400">⑪ E1G高W　¥1,400/戸</option>
+        </optgroup>
+        <optgroup label="Bコンフォート">
+          <option value="860">⑰ Bコン12M　¥860/戸</option>
+          <option value="990">⑱ Bコン40MW　¥990/戸</option>
+        </optgroup>
+        <optgroup label="D">
+          <option value="300">⑲ D5年　¥300/戸</option>
+          <option value="180">⑳ D7年　¥180/戸</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="input-row">
+      <label for="diff-units">世帯数</label>
+      <input type="text" id="diff-units" inputmode="numeric" pattern="[0-9]*" placeholder="例：50">
+    </div>
+    <button id="calcDiffBtn" onclick="renderDiff()" style="display:none;width:100%;margin-top:10px;padding:11px;background:#3b82f6;color:#fff;font-size:16px;font-weight:700;border:none;border-radius:8px;-webkit-appearance:none;">計算する</button>
+  </div>
+  <div id="diff-result" class="diff-result empty">変更前・変更後のプランを選択してください</div>
+</div><!-- /mode-diff -->
 
 <!-- ========== Quick Look全画面案内（JS動作時に削除される） ========== -->
 <div id="nojs-overlay" style="
@@ -445,6 +604,70 @@
   // JSが動いていれば全画面警告を削除
   var nojsEl = document.getElementById('nojs-overlay');
   if (nojsEl) nojsEl.parentNode.removeChild(nojsEl);
+
+  // ── タブ切替 ──
+  function switchMode(mode) {
+    ['estimate','diff'].forEach(function(m) {
+      document.getElementById('mode-' + m).classList.toggle('active', m === mode);
+      document.getElementById('tab-'  + m).classList.toggle('active', m === mode);
+    });
+  }
+  document.getElementById('tab-estimate').addEventListener('click', function(){ switchMode('estimate'); });
+  document.getElementById('tab-diff').addEventListener('click',     function(){ switchMode('diff'); });
+
+  // モバイルで差額計算ボタンを表示
+  if (window.innerWidth <= 640) {
+    var cdb = document.getElementById('calcDiffBtn');
+    if (cdb) cdb.style.display = 'block';
+  }
+
+  // ── 差額計算 ──
+  var diffBefore = document.getElementById('diff-before');
+  var diffAfter  = document.getElementById('diff-after');
+  var diffUnits  = document.getElementById('diff-units');
+
+  function renderDiff() {
+    var bp = parseInt(diffBefore.value, 10) || 0;
+    var ap = parseInt(diffAfter.value,  10) || 0;
+    var units = parseInt((diffUnits.value || '').replace(/[^0-9]/g,''), 10) || 0;
+    var el = document.getElementById('diff-result');
+
+    if (!bp || !ap) {
+      el.className = 'diff-result empty';
+      el.textContent = '変更前・変更後のプランを選択してください';
+      return;
+    }
+
+    var diff  = ap - bp;
+    var total = diff * units;
+    var cls   = diff > 0 ? 'up' : diff < 0 ? 'down' : 'zero';
+    var badge = diff > 0 ? '値上がり' : diff < 0 ? '値下がり' : '差額なし';
+    var sign  = diff > 0 ? '+' : '';
+
+    var perHtml =
+      '<div class="diff-col">' +
+        '<div class="diff-lbl">1世帯あたり</div>' +
+        '<div class="diff-val">' + sign + Math.abs(diff).toLocaleString() + '円</div>' +
+        '<div class="diff-sub">' + bp.toLocaleString() + '円 → ' + ap.toLocaleString() + '円</div>' +
+      '</div>';
+
+    var totalHtml = units ?
+      '<div class="diff-sep"></div>' +
+      '<div class="diff-col">' +
+        '<div class="diff-lbl">' + units + '世帯 合計</div>' +
+        '<div class="diff-val">' + sign + Math.abs(total).toLocaleString() + '円</div>' +
+        '<div class="diff-sub">' + badge + '</div>' +
+      '</div>' : '';
+
+    el.className = 'diff-result ' + cls;
+    el.innerHTML = '<div class="diff-inner">' + perHtml + totalHtml + '</div>';
+  }
+
+  diffBefore.addEventListener('change', renderDiff);
+  diffAfter.addEventListener('change',  renderDiff);
+  diffUnits.addEventListener('input',   renderDiff);
+  diffUnits.addEventListener('change',  renderDiff);
+  diffUnits.addEventListener('blur',    renderDiff);
 
   planSelect.addEventListener('change', render);
   unitsInput.addEventListener('input', render);
