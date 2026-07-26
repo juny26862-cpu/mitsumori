@@ -59,11 +59,11 @@
     }
     .mode-btn {
       flex: 1;
-      padding: 9px 4px;
+      padding: 9px 2px;
       border: none;
       background: transparent;
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       color: #6b7280;
       cursor: pointer;
@@ -130,11 +130,11 @@
     select:focus, input:focus { outline: none; border-color: #3b82f6; }
 
     /* ── 計算ボタン（モバイルのみ） ── */
-    #calcBtn, #diffCalcBtn {
+    #calcBtn, #diffCalcBtn, #ktCalcBtn {
       display: none;
     }
     @media (max-width: 640px) {
-      #calcBtn, #diffCalcBtn {
+      #calcBtn, #diffCalcBtn, #ktCalcBtn {
         display: block;
         width: 100%;
         margin-top: 10px;
@@ -198,6 +198,33 @@
     .diff-amount-inc { color: #ef4444 !important; }
     .diff-amount-dec { color: #10b981 !important; }
     .diff-amount-same { color: #9ca3af !important; }
+
+    /* ── 価格改定モード（6パターン） ── */
+    .results-kt {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      flex: 1;
+    }
+    @media (min-width: 641px) {
+      .results-kt {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        max-width: 900px;
+        margin: 0 auto;
+        flex: none;
+      }
+    }
+    @media (max-width: 640px) {
+      .results-kt .result-card { min-height: 0; padding: 7px 9px; }
+      .results-kt .card-total { font-size: 17px; }
+    }
+    .result-card.kt-a { border-top-color: #f59e0b; }
+    .result-card.kt-b { border-top-color: #10b981; }
+    .result-card.kt-c { border-top-color: #6366f1; }
+    .kt-a .card-label { color: #f59e0b; }
+    .kt-b .card-label { color: #10b981; }
+    .kt-c .card-label { color: #6366f1; }
 
     /* ── 差額セクション ── */
     #diffSection {
@@ -269,6 +296,7 @@
 <div class="mode-toggle">
   <button class="mode-btn active" id="btnEstimate" onclick="setMode('estimate')">📊 見積もり</button>
   <button class="mode-btn" id="btnDiff" onclick="setMode('diff')">🔄 差額計算</button>
+  <button class="mode-btn" id="btnKaitei" onclick="setMode('kaitei')">📈 価格改定</button>
 </div>
 
 <!-- ========== 見積もりモード ========== -->
@@ -451,6 +479,35 @@
   </div>
 </div>
 
+<!-- ========== 価格改定モード ========== -->
+<div id="kaiteiSection" style="display:none">
+  <div class="input-card">
+    <div class="input-row">
+      <label for="kt-plan">プラン</label>
+      <select id="kt-plan">
+        <option value="">── 選んでください ──</option>
+        <optgroup label="Aセレクト">
+          <option value="1400" data-grp="sele">① Aセレ100MW　¥1,400/戸</option>
+          <option value="1700" data-grp="sele">② Aセレ120MW　¥1,700/戸</option>
+          <option value="2000" data-grp="sele">③ Aセレ320MW　¥2,000/戸</option>
+        </optgroup>
+        <optgroup label="Aコンフォート">
+          <option value="2140" data-grp="con">④ Aコン100MW　¥2,140/戸</option>
+          <option value="2440" data-grp="con">⑤ Aコン120MW　¥2,440/戸</option>
+          <option value="2740" data-grp="con">⑥ Aコン320MW　¥2,740/戸</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="input-row">
+      <label for="kt-units">世帯数</label>
+      <input type="text" id="kt-units" inputmode="numeric" pattern="[0-9]*" placeholder="例：50" />
+    </div>
+    <button id="ktCalcBtn" onclick="renderKaitei()">計算する</button>
+  </div>
+
+  <div class="results-kt" id="ktResults"></div>
+</div>
+
 <!-- ========== Quick Look全画面案内（JS動作時に削除される） ========== -->
 <div id="nojs-overlay" style="
   position:fixed;top:0;left:0;right:0;bottom:0;
@@ -533,21 +590,21 @@
   }
 
   // ── モード切替 ──
+  var MODES = [
+    { key: 'estimate', section: 'estimateSection', btn: 'btnEstimate' },
+    { key: 'diff',     section: 'diffSection',     btn: 'btnDiff'     },
+    { key: 'kaitei',   section: 'kaiteiSection',   btn: 'btnKaitei'   }
+  ];
   function setMode(mode) {
-    var est = document.getElementById('estimateSection');
-    var dif = document.getElementById('diffSection');
-    var btnE = document.getElementById('btnEstimate');
-    var btnD = document.getElementById('btnDiff');
-    if (mode === 'estimate') {
-      est.style.display = '';
-      dif.style.display = 'none';
-      btnE.classList.add('active');
-      btnD.classList.remove('active');
-    } else {
-      est.style.display = 'none';
-      dif.style.display = '';
-      btnE.classList.remove('active');
-      btnD.classList.add('active');
+    for (var i = 0; i < MODES.length; i++) {
+      var m   = MODES[i];
+      var sec = document.getElementById(m.section);
+      var btn = document.getElementById(m.btn);
+      if (sec) sec.style.display = (m.key === mode) ? '' : 'none';
+      if (btn) {
+        if (m.key === mode) btn.classList.add('active');
+        else                btn.classList.remove('active');
+      }
     }
   }
 
@@ -696,6 +753,66 @@
     } catch(e) {}
   }
 
+  // ── 価格改定計算 ──
+  // グループごとの回線アップグレード単価（税抜）
+  var KT_UPG = {
+    sele: { name: 'Aセレ', g25: 2500, g10: 3000 },
+    con:  { name: 'Aコン', g25: 3240, g10: 3740 }
+  };
+  var ktPlan    = document.getElementById('kt-plan');
+  var ktUnits   = document.getElementById('kt-units');
+  var ktResults = document.getElementById('ktResults');
+
+  function renderKaitei() {
+    try {
+      var opt   = ktPlan.options[ktPlan.selectedIndex];
+      var price = parseInt(ktPlan.value, 10) || 0;
+      var grp   = opt ? opt.getAttribute('data-grp') : null;
+      var raw   = (ktUnits.value || '').replace(/[^0-9]/g, '');
+      var units = parseInt(raw, 10) || 0;
+
+      var upg      = KT_UPG[grp] || KT_UPG.sele;
+      var baseName = (price && ktPlan.value) ? planLabel(ktPlan) : '—';
+
+      var patterns = [
+        { cls: 'kt-a', label: '値上げのみ',              name: baseName,           unit: price,   cam: 0 },
+        { cls: 'kt-b', label: '2.5G',                    name: upg.name + ' 2.5G', unit: upg.g25, cam: 0 },
+        { cls: 'kt-c', label: '10G',                     name: upg.name + ' 10G',  unit: upg.g10, cam: 0 },
+        { cls: 'kt-a', label: '値上げ ＋ 防犯カメラ1台', name: baseName,           unit: price,   cam: CAM1 },
+        { cls: 'kt-b', label: '2.5G ＋ 防犯カメラ1台',   name: upg.name + ' 2.5G', unit: upg.g25, cam: CAM1 },
+        { cls: 'kt-c', label: '10G ＋ 防犯カメラ1台',    name: upg.name + ' 10G',  unit: upg.g10, cam: CAM1 }
+      ];
+
+      var html = '';
+      for (var i = 0; i < patterns.length; i++) {
+        var p = patterns[i];
+        html += '<div class="result-card ' + p.cls + '">';
+        html += '<div class="card-label">' + p.label + '</div>';
+        html += '<div class="card-title">' + (price && units ? p.name : '—') + '</div>';
+
+        if (!price || !units) {
+          html += '<div class="card-total"><span style="font-size:10px;color:#9ca3af">プランと世帯数を入力</span></div>';
+        } else {
+          var planTotal = p.unit * units;
+          var total     = planTotal + p.cam;
+          var perUnit   = Math.round(total / units);
+          html += '<div class="card-total">'
+                + '<div style="font-size:0.55em;color:#9ca3af;font-weight:600;line-height:1.2;">税抜</div>'
+                + fmt(total) + '<span>/月</span>'
+                + '<div style="font-size:0.62em;color:#0ea5e9;font-weight:700;margin-top:3px;line-height:1.2;">税込 ' + fmt(tax(total)) + '/月</div>'
+                + '</div>';
+          html += '<div class="card-monthly">1戸あたり 税抜' + fmt(perUnit) + ' / 税込' + fmt(tax(perUnit)) + '（月）</div>';
+          html += '<div class="card-breakdown">';
+          html += '<div class="breakdown-row"><span>' + units + '戸×' + fmt(p.unit) + '</span><span>' + fmt(planTotal) + '</span></div>';
+          if (p.cam) html += '<div class="breakdown-row"><span>カメラ1台目</span><span>' + fmt(p.cam) + '</span></div>';
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+      ktResults.innerHTML = html;
+    } catch(e) {}
+  }
+
   // JSが動いていれば全画面警告を削除
   var nojsEl = document.getElementById('nojs-overlay');
   if (nojsEl) nojsEl.parentNode.removeChild(nojsEl);
@@ -710,6 +827,12 @@
   diffUnits.addEventListener('input',   renderDiff);
   diffUnits.addEventListener('change',  renderDiff);
   diffUnits.addEventListener('blur',    renderDiff);
+
+  ktPlan.addEventListener('change',  renderKaitei);
+  ktUnits.addEventListener('input',  renderKaitei);
+  ktUnits.addEventListener('change', renderKaitei);
+  ktUnits.addEventListener('blur',   renderKaitei);
+  renderKaitei();
 </script>
 </body>
 </html>
