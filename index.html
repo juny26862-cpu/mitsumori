@@ -216,6 +216,11 @@
       }
     }
     @media (max-width: 640px) {
+      /* 左列＝カメラなし / 右列＝カメラあり になるよう列方向に流す */
+      .results-kt {
+        grid-template-rows: repeat(3, auto);
+        grid-auto-flow: column;
+      }
       .results-kt .result-card { min-height: 0; padding: 7px 9px; }
       .results-kt .card-total { font-size: 17px; }
     }
@@ -420,8 +425,13 @@
           <option value="180">⑳ D7年　¥180/戸</option>
         </optgroup>
         <optgroup label="FTTH">
-          <option value="1600">㉑ FTTH E1G有線　¥1,600/戸</option>
-          <option value="1900">㉒ FTTH E1G wifi　¥1,900/戸</option>
+          <option value="1600">㉑ FTTH E2.5G有線　¥1,600/戸</option>
+          <option value="1900">㉒ FTTH E2.5GWIFI　¥1,900/戸</option>
+          <option value="2400">㉓ E10GFTTHWIFI　¥2,400/戸</option>
+          <option value="2500">㉔ FTTH Aセレ2.5GW　¥2,500/戸</option>
+          <option value="3000">㉕ FTTH Aセレ10GW　¥3,000/戸</option>
+          <option value="3240">㉖ FTTH Aコン2.5GW　¥3,240/戸</option>
+          <option value="3740">㉗ Aコン10GW　¥3,740/戸</option>
         </optgroup>
         <optgroup label="料金改定">
           <option value="1400">【料金改定】Aセレ100MW　¥1,400/戸</option>
@@ -470,8 +480,13 @@
           <option value="180">⑳ D7年　¥180/戸</option>
         </optgroup>
         <optgroup label="FTTH">
-          <option value="1600">㉑ FTTH E1G有線　¥1,600/戸</option>
-          <option value="1900">㉒ FTTH E1G wifi　¥1,900/戸</option>
+          <option value="1600">㉑ FTTH E2.5G有線　¥1,600/戸</option>
+          <option value="1900">㉒ FTTH E2.5GWIFI　¥1,900/戸</option>
+          <option value="2400">㉓ E10GFTTHWIFI　¥2,400/戸</option>
+          <option value="2500">㉔ FTTH Aセレ2.5GW　¥2,500/戸</option>
+          <option value="3000">㉕ FTTH Aセレ10GW　¥3,000/戸</option>
+          <option value="3240">㉖ FTTH Aコン2.5GW　¥3,240/戸</option>
+          <option value="3740">㉗ Aコン10GW　¥3,740/戸</option>
         </optgroup>
         <optgroup label="料金改定">
           <option value="1400">【料金改定】Aセレ100MW　¥1,400/戸</option>
